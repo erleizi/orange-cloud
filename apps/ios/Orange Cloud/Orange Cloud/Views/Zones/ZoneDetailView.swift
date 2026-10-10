@@ -687,7 +687,7 @@ struct ZoneDetailView: View {
         } message: {
             Text("当前授权未包含此操作所需权限（\(deniedScopeHint)）。点「一键重授权」补齐，无需退出登录。")
         }
-        .alert("操作失败", isPresented: .init(
+        .alert("操作失败", isPresented: Binding<Bool>(
             get: { actionsViewModel.error != nil },
             set: { if !$0 { actionsViewModel.error = nil } }
         )) {
