@@ -17,7 +17,7 @@ jobs:
 
       - name: Build archive (unsigned, OPENSOURCE_UNLOCKED)
         run: |
-          cd "apps/ios"
+          cd "apps/ios" \ \
           xcodebuild \
             -project "Orange Cloud/Orange Cloud.xcodeproj" \
             -scheme "Orange Cloud" \
@@ -27,7 +27,8 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGN_IDENTITY="" \
-            SWIFT_ACTIVE_COMPILATION_CONDITIONS='$(inherited) OPENSOURCE_UNLOCKED'
+            SWIFT_ACTIVE_COMPILATION_CONDITIONS='$(inherited) OPENSOURCE_UNLOCKED' \
+            OTHER_SWIFT_FLAGS='$(inherited) -Xfrontend -solver-expression-time-threshold=60'
 
       - name: Package unsigned IPA
         run: |
