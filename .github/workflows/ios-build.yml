@@ -1,0 +1,45 @@
+name: Build iOS IPA (self-signed)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select latest Xcode
+        run: |
+          sudo xcode-select -s $(ls -d /Applications/Xcode*.app | sort -V | tail -1)/Contents/Developer
+          xcodebuild -version
+
+      - name: Build archive (unsigned, OPENSOURCE_UNLOCKED)
+        run: |
+          cd "apps/ios"
+          xcodebuild \
+            -project "Orange Cloud/Orange Cloud.xcodeproj" \
+            -scheme "Orange Cloud" \
+            -configuration Release \
+            -archivePath "$PWD/build/OrangeCloud.xcarchive" \
+            archive \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" \
+            SWIFT_ACTIVE_COMPILATION_CONDITIONS='$(inherited) OPENSOURCE_UNLOCKED'
+
+      - name: Package unsigned IPA
+        run: |
+          cd "apps/ios/build"
+          mkdir -p Payload
+          cp -R "OrangeCloud.xcarchive/Products/Applications/"*.app Payload/
+          zip -r OrangeCloud-unsigned.ipa Payload
+          ls -lh OrangeCloud-unsigned.ipa
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: OrangeCloud-unsigned-ipa
+          path: apps/ios/build/OrangeCloud-unsigned.ipa
+          retention-days: 7
