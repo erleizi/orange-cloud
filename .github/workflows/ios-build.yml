@@ -1,7 +1,9 @@
 name: Build iOS IPA (self-signed)
 
+
 on:
   workflow_dispatch:
+
 
 jobs:
   build:
@@ -10,14 +12,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+
       - name: Select latest Xcode
         run: |
           sudo xcode-select -s $(ls -d /Applications/Xcode*.app | sort -V | tail -1)/Contents/Developer
           xcodebuild -version
 
+
       - name: Build archive (unsigned, OPENSOURCE_UNLOCKED)
         run: |
-          cd "apps/ios" \ \
+          cd "apps/ios"
           xcodebuild \
             -project "Orange Cloud/Orange Cloud.xcodeproj" \
             -scheme "Orange Cloud" \
@@ -30,6 +34,7 @@ jobs:
             SWIFT_ACTIVE_COMPILATION_CONDITIONS='$(inherited) OPENSOURCE_UNLOCKED' \
             OTHER_SWIFT_FLAGS='$(inherited) -Xfrontend -solver-expression-time-threshold=60'
 
+
       - name: Package unsigned IPA
         run: |
           cd "apps/ios/build"
@@ -37,6 +42,7 @@ jobs:
           cp -R "OrangeCloud.xcarchive/Products/Applications/"*.app Payload/
           zip -r OrangeCloud-unsigned.ipa Payload
           ls -lh OrangeCloud-unsigned.ipa
+
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
