@@ -1,0 +1,93 @@
+name: Build Unsigned IPA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Patch and Build Unsigned App
+        run: |
+          cd "apps/ios/Orange Cloud"
+          
+          # 1. 移除 Watch App 依赖
+          sed -i '' '/Orange Cloud Watch Watch App\.app/d' "Orange Cloud.xcodeproj/project.pbxproj"
+
+          # 2. 用 AnyView 切碎 ZoneDetailView.swift 的泛型推导链，彻底解决 121 行超时
+          python3 - << 'EOF'
+          import pathlib, re
+
+          for path in pathlib.Path(".").rglob("ZoneDetailView.swift"):
+              text = path.read_text(encoding="utf-8")
+              helper = "\nextension View { func _ciErase() -> AnyView { AnyView(self) } }\n"
+              if "_ciErase" not in text:
+                  text += helper
+
+              # 替换第 121 行报错点
+              text, n1 = re.subn(
+                  r'\.background\s*\{\s*SkyBackground\(\)\s*\}',
+                  '._ciErase().background(AnyView(SkyBackground()))._ciErase()',
+                  text
+              )
+
+              # 在重型修饰符前自动插入截断点
+              heavy_modifiers = [
+                  r'(\s+)(\.navigationTitle\s*\()',
+                  r'(\s+)(\.toolbar\s*\{)',
+                  r'(\s+)(\.sheet\s*\()',
+                  r'(\s+)(\.alert\s*\()',
+                  r'(\s+)(\.confirmationDialog\s*\()',
+                  r'(\s+)(\.task\s*[\(\{])',
+                  r'(\s+)(\.refreshable\s*\{)',
+                  r'(\s+)(\.onChange\s*\()'
+              ]
+              n2 = 0
+              for mod in heavy_modifiers:
+                  text, count = re.subn(mod, r'\1._ciErase()\1\2', text)
+                  n2 += count
+
+              path.write_text(text, encoding="utf-8")
+              print(f"Patched {path}: background={n1}, heavy_modifiers={n2}")
+          EOF
+
+          # 3. 写入 xcconfig 并开始编译
+          cat << 'EOF' > unlock.xcconfig
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) OPENSOURCE_UNLOCKED
+          CODE_SIGNING_ALLOWED = NO
+          CODE_SIGNING_REQUIRED = NO
+          CODE_SIGN_IDENTITY = 
+          AD_HOC_CODE_SIGNING_ALLOWED = YES
+          EOF
+
+          xcodebuild build \
+            -project "Orange Cloud.xcodeproj" \
+            -scheme "Orange Cloud" \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/dd" \
+            -xcconfig unlock.xcconfig \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY=""
+
+      - name: Package IPA
+        run: |
+          APP="$RUNNER_TEMP/dd/Build/Products/Release-iphoneos/Orange Cloud.app"
+          [ -d "$APP" ] || APP=$(find "$RUNNER_TEMP/dd/Build/Products/Release-iphoneos" -maxdepth 1 -name "*.app" | head -1)
+          mkdir -p "$RUNNER_TEMP/Payload"
+          cp -R "$APP" "$RUNNER_TEMP/Payload/"
+          cd "$RUNNER_TEMP"
+          zip -qry OrangeCloud-unsigned.ipa Payload
+          mkdir -p "$GITHUB_WORKSPACE/out"
+          mv OrangeCloud-unsigned.ipa "$GITHUB_WORKSPACE/out/"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OrangeCloud-unsigned-ipa
+          path: out/OrangeCloud-unsigned.ipa
