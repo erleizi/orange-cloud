@@ -118,7 +118,7 @@ struct ZoneDetailView: View {
             }
             .padding()
         }
-        .background { SkyBackground() }
+        ._eraseForCI().background(AnyView(SkyBackground()))
         .navigationTitle(zone.name)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -1149,3 +1149,5 @@ extension View {
         }
     }
 }
+
+private extension View { func _eraseForCI() -> AnyView { AnyView(self) } }
