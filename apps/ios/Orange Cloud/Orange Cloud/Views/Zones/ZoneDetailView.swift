@@ -277,15 +277,20 @@ struct ZoneDetailView: View {
         } message: {
             Text("当前授权未包含此操作所需权限（\(deniedScopeHint)）。点「一键重授权」补齐，无需退出登录。")
         }
-        .alert("操作失败", isPresented: .init(
-            get: { actionsViewModel.error != nil },
-            set: { if !$0 { actionsViewModel.error = nil } }
-        )) {
+        .alert("操作失败", isPresented: errorAlertBinding) {
             apiErrorDocButton(for: actionsViewModel.error)
             Button("好", role: .cancel) {}
         } message: {
             Text(actionsViewModel.error ?? "")
         }
+    }
+
+    /// 错误弹窗的 Binding：抽出来避免 body 尾部类型推断超时
+    private var errorAlertBinding: Binding<Bool> {
+        Binding(
+            get: { actionsViewModel.error != nil },
+            set: { if !$0 { actionsViewModel.error = nil } }
+        )
     }
 
     // MARK: - 暂停态与缓存同步
