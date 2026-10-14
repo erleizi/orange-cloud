@@ -123,14 +123,7 @@ struct ZoneDetailView: View {
                 }
 
                 nameServersSection
-
-                // Zone ID footer
-                Text("Zone ID · \(zone.id)")
-                    .font(.caption2.monospaced())
-                    .foregroundStyle(.tertiary)
-                    .textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.bottom, 8)
+                zoneIdFooter
             }
             .padding()
         }
@@ -740,6 +733,17 @@ struct ZoneDetailView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
+    }
+
+    // 拆分自 body 的 Zone ID footer
+    @ViewBuilder
+    private var zoneIdFooter: some View {
+        Text("Zone ID · \(zone.id)")
+            .font(.caption2.monospaced())
+            .foregroundStyle(.tertiary)
+            .textSelection(.enabled)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.bottom, 8)
     }
 
     private func syncPausedFromAPI() async {
