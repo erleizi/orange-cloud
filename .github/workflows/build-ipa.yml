@@ -9,19 +9,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_26.*.app || true
-
       - name: Show Xcode version
         run: xcodebuild -version
-
-      - name: List simulators sanity check
-        run: xcodebuild -showsdks | head -30
 
       - name: Build (unsigned, OPENSOURCE_UNLOCKED)
         run: |
           cd "apps/ios/Orange Cloud"
-          printf 'SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) OPENSOURCE_UNLOCKED\nCODE_SIGNING_ALLOWED = NO\nCODE_SIGN_IDENTITY = \n' > unlock.xcconfig
+          printf 'SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) OPENSOURCE_UNLOCKED\nCODE_SIGNING_ALLOWED = NO\nCODE_SIGN_IDENTITY = \nOTHER_SWIFT_FLAGS = $(inherited) -Xfrontend -solver-expression-time-threshold=60\n' > unlock.xcconfig
           xcodebuild build \
             -project "Orange Cloud.xcodeproj" \
             -scheme "Orange Cloud" \
