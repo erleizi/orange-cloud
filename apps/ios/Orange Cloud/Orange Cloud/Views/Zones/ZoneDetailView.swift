@@ -103,24 +103,15 @@ struct ZoneDetailView: View {
                 // 本卡内 eager 门控行的保留判据：目的页是叶子（内部只开 sheet、不再 push）。
                 // 「规则」「负载均衡」的目的页还要继续 push，已改值式（ZoneRoute + 栈根 navdest）；
                 // 其余若日后加内层 push，必须同步改值式。
-                sectionCard(String(localized: "管理")) {
-                    managementRows
-                }
+                managementCard
 
                 // 整卡仅在读到任一组配置时出现：
                 // 机器人管控全套餐可用但需 bot-management.read；
                 // 两个 zone setting 是 Pro 起，免费套餐读得到但不可改（editable == false）。
                 // 与其给用户一排永远打不开的锁，不如不显示。
-                if actionsViewModel.botConfigLoaded || actionsViewModel.aiSettingsAvailable {
-                    sectionCard(String(localized: "AI 内容控制")) {
-                        aiBotControlRows
-                        aiZoneSettingsRows
-                    }
-                }
+                aiCard
 
-                sectionCard(String(localized: "操作")) {
-                    actionRows
-                }
+                actionCard
 
                 nameServersSection
                 zoneIdFooter
@@ -744,6 +735,31 @@ struct ZoneDetailView: View {
             .textSelection(.enabled)
             .frame(maxWidth: .infinity, alignment: .center)
             .padding(.bottom, 8)
+    }
+
+    // 卡片包装：把 sectionCard 调用移出 body，避免类型推断超时
+    @ViewBuilder
+    private var managementCard: some View {
+        sectionCard(String(localized: "管理")) {
+            managementRows
+        }
+    }
+
+    @ViewBuilder
+    private var aiCard: some View {
+        if actionsViewModel.botConfigLoaded || actionsViewModel.aiSettingsAvailable {
+            sectionCard(String(localized: "AI 内容控制")) {
+                aiBotControlRows
+                aiZoneSettingsRows
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var actionCard: some View {
+        sectionCard(String(localized: "操作")) {
+            actionRows
+        }
     }
 
     private func syncPausedFromAPI() async {
