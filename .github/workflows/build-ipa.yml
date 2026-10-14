@@ -15,7 +15,7 @@ jobs:
       - name: Build (unsigned, OPENSOURCE_UNLOCKED)
         run: |
           cd "apps/ios/Orange Cloud"
-          printf 'SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) OPENSOURCE_UNLOCKED\nCODE_SIGNING_ALLOWED = NO\nCODE_SIGN_IDENTITY = \nOTHER_SWIFT_FLAGS = $(inherited) -Xfrontend -solver-expression-time-threshold=60\n' > unlock.xcconfig
+          printf 'SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) OPENSOURCE_UNLOCKED\nCODE_SIGNING_ALLOWED = NO\nCODE_SIGN_IDENTITY = \nOTHER_SWIFT_FLAGS = $(inherited) -Xfrontend -solver-expression-time-threshold=600\n' > unlock.xcconfig
           xcodebuild build \
             -project "Orange Cloud.xcodeproj" \
             -scheme "Orange Cloud" \
