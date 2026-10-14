@@ -98,30 +98,7 @@ struct ZoneDetailView: View {
             VStack(alignment: .leading, spacing: 22) {
                 heroCard
 
-                // 分析：图表直接内嵌第一层级，置于管理之前
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("分析")
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                        .textCase(.uppercase)
-                        .padding(.horizontal, 4)
-                    if auth.hasScope("analytics.read") {
-                        ZoneAnalyticsSection(viewModel: analyticsViewModel)
-                        // 上方图表保持原数据集；明细与安全事件走 adaptive 数据集，范围跟随上方选择器
-                        ZoneTrafficDetailsSection(
-                            viewModel: trafficDetailsViewModel,
-                            range: analyticsViewModel.selectedRange
-                        )
-                        .padding(.top, 6)   // 与分析区内部卡片间距（14）对齐
-                    } else {
-                        Label("需要「流量分析」权限才能展示流量图表", systemImage: "lock")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding(.vertical, 16)
-                            .glassIsland(cornerRadius: OCLayout.chipRadius)
-                    }
-                }
+                analyticsSection
 
                 // 本卡内 eager 门控行的保留判据：目的页是叶子（内部只开 sheet、不再 push）。
                 // 「规则」「负载均衡」的目的页还要继续 push，已改值式（ZoneRoute + 栈根 navdest）；
@@ -145,18 +122,7 @@ struct ZoneDetailView: View {
                     actionRows
                 }
 
-                if !zone.nameServers.isEmpty {
-                    sectionCard("Name Servers") {
-                        VStack(alignment: .leading, spacing: 8) {
-                            ForEach(zone.nameServers, id: \.self) { server in
-                                Text(server)
-                                    .font(.callout.monospaced())
-                                    .textSelection(.enabled)
-                            }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                }
+                nameServersSection
 
                 // Zone ID footer
                 Text("Zone ID · \(zone.id)")
@@ -724,6 +690,51 @@ struct ZoneDetailView: View {
             }
         }
         .disabled(actionsViewModel.isPurging)
+    }
+
+    // 拆分自 body 的「分析」区块
+    @ViewBuilder
+    private var analyticsSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("分析")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
+                .padding(.horizontal, 4)
+            if auth.hasScope("analytics.read") {
+                ZoneAnalyticsSection(viewModel: analyticsViewModel)
+                // 上方图表保持原数据集；明细与安全事件走 adaptive 数据集，范围跟随上方选择器
+                ZoneTrafficDetailsSection(
+                    viewModel: trafficDetailsViewModel,
+                    range: analyticsViewModel.selectedRange
+                )
+                .padding(.top, 6)   // 与分析区内部卡片间距（14）对齐
+            } else {
+                Label("需要「流量分析」权限才能展示流量图表", systemImage: "lock")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 16)
+                    .glassIsland(cornerRadius: OCLayout.chipRadius)
+            }
+        }
+    }
+
+    // 拆分自 body 的「Name Servers」区块
+    @ViewBuilder
+    private var nameServersSection: some View {
+        if !zone.nameServers.isEmpty {
+            sectionCard("Name Servers") {
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(zone.nameServers, id: \.self) { server in
+                        Text(server)
+                            .font(.callout.monospaced())
+                            .textSelection(.enabled)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
     }
 
     private func syncPausedFromAPI() async {
