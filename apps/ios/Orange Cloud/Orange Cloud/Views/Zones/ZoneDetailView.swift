@@ -270,142 +270,8 @@ struct ZoneDetailView: View {
                 // 与其给用户一排永远打不开的锁，不如不显示。
                 if actionsViewModel.botConfigLoaded || actionsViewModel.aiSettingsAvailable {
                     sectionCard(String(localized: "AI 内容控制")) {
-                        if actionsViewModel.botConfigLoaded {
-                            // 2026-09-15 起 ai_bots_protection 拆成三类：响应带任一新字段就换成三个选择行，
-                            // 否则保留旧的单选作回退
-                            if actionsViewModel.usesAICrawlerPolicies {
-                                aiCrawlerPolicyRows
-                            } else {
-                                settingPickerRow(
-                                    title: String(localized: "AI 爬虫"),
-                                    subtitle: String(localized: "抓取内容用于训练或问答的机器人"),
-                                    icon: "ant",
-                                    tint: .indigo,
-                                    options: AIBotsProtection.allCases,
-                                    selection: actionsViewModel.aiBotsProtection,
-                                    selectionLabel: actionsViewModel.aiBotsProtection.label,
-                                    optionLabel: \.label,
-                                    isBusy: actionsViewModel.isUpdatingBotConfig,
-                                    canEdit: canEditBots,
-                                    deniedScope: "bot-management.write",
-                                    requestChange: { mode in
-                                        Task { await actionsViewModel.setAIBotsProtection(mode) }
-                                    }
-                                )
-                            }
-
-                            settingToggleRow(
-                                title: String(localized: "链接迷宫"),
-                                subtitle: String(localized: "用无尽链接消耗违规爬虫"),
-                                icon: "arrow.triangle.turn.up.right.diamond",
-                                tint: .indigo,
-                                isOn: actionsViewModel.crawlerProtection,
-                                isBusy: actionsViewModel.isUpdatingBotConfig,
-                                canEdit: canEditBots,
-                                isLoaded: true,
-                                deniedScope: "bot-management.write",
-                                requestToggle: { on in
-                                    Task { await actionsViewModel.setCrawlerProtection(on) }
-                                }
-                            )
-
-                            settingToggleRow(
-                                title: String(localized: "拦截内容机器人"),
-                                subtitle: String(localized: "拦下低可信自动流量，已验证的机器人除外"),
-                                icon: "person.badge.shield.checkmark",
-                                tint: .indigo,
-                                isOn: actionsViewModel.contentBotsProtection,
-                                isBusy: actionsViewModel.isUpdatingBotConfig,
-                                canEdit: canEditBots,
-                                isLoaded: true,
-                                deniedScope: "bot-management.write",
-                                requestToggle: { on in
-                                    Task { await actionsViewModel.setContentBotsProtection(on) }
-                                }
-                            )
-
-                            // Bot Preference Sync 取代托管 robots.txt：响应带该字段才换，否则保留旧开关
-                            if let syncOn = actionsViewModel.botPreferenceSync {
-                                settingToggleRow(
-                                    title: String(localized: "按偏好生成 robots.txt"),
-                                    subtitle: String(localized: "根据以上三项，由 Cloudflare 生成 robots.txt 规则"),
-                                    icon: "list.bullet.rectangle",
-                                    tint: .teal,
-                                    isOn: syncOn,
-                                    isBusy: actionsViewModel.isUpdatingBotConfig,
-                                    canEdit: canEditBots,
-                                    isLoaded: true,
-                                    deniedScope: "bot-management.write",
-                                    requestToggle: { on in
-                                        Task { await actionsViewModel.setBotPreferenceSync(on) }
-                                    }
-                                )
-                            } else {
-                                settingToggleRow(
-                                    title: String(localized: "托管 robots.txt"),
-                                    subtitle: String(localized: "由 Cloudflare 维护，置于现有内容之前"),
-                                    icon: "list.bullet.rectangle",
-                                    tint: .teal,
-                                    isOn: actionsViewModel.managedRobotsTxt,
-                                    isBusy: actionsViewModel.isUpdatingBotConfig,
-                                    canEdit: canEditBots,
-                                    isLoaded: true,
-                                    deniedScope: "bot-management.write",
-                                    requestToggle: { on in
-                                        Task { await actionsViewModel.setManagedRobotsTxt(on) }
-                                    }
-                                )
-                            }
-
-                            settingToggleRow(
-                                title: String(localized: "内容使用声明"),
-                                subtitle: String(localized: "在 robots.txt 中声明内容的使用许可"),
-                                icon: "doc.badge.gearshape",
-                                tint: .teal,
-                                isOn: actionsViewModel.robotsLicense,
-                                isBusy: actionsViewModel.isUpdatingBotConfig,
-                                canEdit: canEditBots,
-                                isLoaded: true,
-                                deniedScope: "bot-management.write",
-                                requestToggle: { on in
-                                    Task { await actionsViewModel.setRobotsLicense(on) }
-                                }
-                            )
-                        }
-
-                        if actionsViewModel.aiTrainingRedirectAvailable {
-                            settingToggleRow(
-                                title: String(localized: "AI 训练重定向"),
-                                subtitle: String(localized: "把用于模型训练的爬虫引走"),
-                                icon: "arrow.triangle.branch",
-                                tint: .purple,
-                                isOn: actionsViewModel.aiTrainingRedirect,
-                                isBusy: actionsViewModel.isTogglingAITrainingRedirect,
-                                canEdit: canEditSettings,
-                                isLoaded: true,
-                                deniedScope: "zone-settings.write",
-                                requestToggle: { on in
-                                    Task { await actionsViewModel.setAITrainingRedirect(on) }
-                                }
-                            )
-                        }
-
-                        if actionsViewModel.markdownForAgentsAvailable {
-                            settingToggleRow(
-                                title: String(localized: "面向 Agent 的 Markdown"),
-                                subtitle: String(localized: "按请求把页面转成 Markdown 返回"),
-                                icon: "doc.plaintext",
-                                tint: .teal,
-                                isOn: actionsViewModel.markdownForAgents,
-                                isBusy: actionsViewModel.isTogglingMarkdownForAgents,
-                                canEdit: canEditSettings,
-                                isLoaded: true,
-                                deniedScope: "zone-settings.write",
-                                requestToggle: { on in
-                                    Task { await actionsViewModel.setMarkdownForAgents(on) }
-                                }
-                            )
-                        }
+                        aiBotControlRows
+                        aiZoneSettingsRows
                     }
                 }
 
@@ -687,7 +553,7 @@ struct ZoneDetailView: View {
         } message: {
             Text("当前授权未包含此操作所需权限（\(deniedScopeHint)）。点「一键重授权」补齐，无需退出登录。")
         }
-        .alert("操作失败", isPresented: Binding<Bool>(
+        .alert("操作失败", isPresented: .init(
             get: { actionsViewModel.error != nil },
             set: { if !$0 { actionsViewModel.error = nil } }
         )) {
@@ -701,6 +567,151 @@ struct ZoneDetailView: View {
     // MARK: - 暂停态与缓存同步
 
     /// 从 API 校准暂停态并回写缓存（列表/首页读的是同一份 CachedZone）
+    // 拆分自 body 的「AI 内容控制」 sectionCard：原内联闭包过长，
+    // 在 CI 上触发 "unable to type-check this expression in reasonable time"，故拆成小块。
+    @ViewBuilder
+    private var aiBotControlRows: some View {
+        if actionsViewModel.botConfigLoaded {
+            // 2026-09-15 起 ai_bots_protection 拆成三类：响应带任一新字段就换成三个选择行，
+            // 否则保留旧的单选作回退
+            if actionsViewModel.usesAICrawlerPolicies {
+                aiCrawlerPolicyRows
+            } else {
+                settingPickerRow(
+                    title: String(localized: "AI 爬虫"),
+                    subtitle: String(localized: "抓取内容用于训练或问答的机器人"),
+                    icon: "ant",
+                    tint: .indigo,
+                    options: AIBotsProtection.allCases,
+                    selection: actionsViewModel.aiBotsProtection,
+                    selectionLabel: actionsViewModel.aiBotsProtection.label,
+                    optionLabel: \.label,
+                    isBusy: actionsViewModel.isUpdatingBotConfig,
+                    canEdit: canEditBots,
+                    deniedScope: "bot-management.write",
+                    requestChange: { mode in
+                        Task { await actionsViewModel.setAIBotsProtection(mode) }
+                    }
+                )
+            }
+
+            settingToggleRow(
+                title: String(localized: "链接迷宫"),
+                subtitle: String(localized: "用无尽链接消耗违规爬虫"),
+                icon: "arrow.triangle.turn.up.right.diamond",
+                tint: .indigo,
+                isOn: actionsViewModel.crawlerProtection,
+                isBusy: actionsViewModel.isUpdatingBotConfig,
+                canEdit: canEditBots,
+                isLoaded: true,
+                deniedScope: "bot-management.write",
+                requestToggle: { on in
+                    Task { await actionsViewModel.setCrawlerProtection(on) }
+                }
+            )
+
+            settingToggleRow(
+                title: String(localized: "拦截内容机器人"),
+                subtitle: String(localized: "拦下低可信自动流量，已验证的机器人除外"),
+                icon: "person.badge.shield.checkmark",
+                tint: .indigo,
+                isOn: actionsViewModel.contentBotsProtection,
+                isBusy: actionsViewModel.isUpdatingBotConfig,
+                canEdit: canEditBots,
+                isLoaded: true,
+                deniedScope: "bot-management.write",
+                requestToggle: { on in
+                    Task { await actionsViewModel.setContentBotsProtection(on) }
+                }
+            )
+
+            // Bot Preference Sync 取代托管 robots.txt：响应带该字段才换，否则保留旧开关
+            if let syncOn = actionsViewModel.botPreferenceSync {
+                settingToggleRow(
+                    title: String(localized: "按偏好生成 robots.txt"),
+                    subtitle: String(localized: "根据以上三项，由 Cloudflare 生成 robots.txt 规则"),
+                    icon: "list.bullet.rectangle",
+                    tint: .teal,
+                    isOn: syncOn,
+                    isBusy: actionsViewModel.isUpdatingBotConfig,
+                    canEdit: canEditBots,
+                    isLoaded: true,
+                    deniedScope: "bot-management.write",
+                    requestToggle: { on in
+                        Task { await actionsViewModel.setBotPreferenceSync(on) }
+                    }
+                )
+            } else {
+                settingToggleRow(
+                    title: String(localized: "托管 robots.txt"),
+                    subtitle: String(localized: "由 Cloudflare 维护，置于现有内容之前"),
+                    icon: "list.bullet.rectangle",
+                    tint: .teal,
+                    isOn: actionsViewModel.managedRobotsTxt,
+                    isBusy: actionsViewModel.isUpdatingBotConfig,
+                    canEdit: canEditBots,
+                    isLoaded: true,
+                    deniedScope: "bot-management.write",
+                    requestToggle: { on in
+                        Task { await actionsViewModel.setManagedRobotsTxt(on) }
+                    }
+                )
+            }
+
+            settingToggleRow(
+                title: String(localized: "内容使用声明"),
+                subtitle: String(localized: "在 robots.txt 中声明内容的使用许可"),
+                icon: "doc.badge.gearshape",
+                tint: .teal,
+                isOn: actionsViewModel.robotsLicense,
+                isBusy: actionsViewModel.isUpdatingBotConfig,
+                canEdit: canEditBots,
+                isLoaded: true,
+                deniedScope: "bot-management.write",
+                requestToggle: { on in
+                    Task { await actionsViewModel.setRobotsLicense(on) }
+                }
+            )
+        }
+    }
+
+    @ViewBuilder
+    private var aiZoneSettingsRows: some View {
+        if actionsViewModel.aiTrainingRedirectAvailable {
+            settingToggleRow(
+                title: String(localized: "AI 训练重定向"),
+                subtitle: String(localized: "把用于模型训练的爬虫引走"),
+                icon: "arrow.triangle.branch",
+                tint: .purple,
+                isOn: actionsViewModel.aiTrainingRedirect,
+                isBusy: actionsViewModel.isTogglingAITrainingRedirect,
+                canEdit: canEditSettings,
+                isLoaded: true,
+                deniedScope: "zone-settings.write",
+                requestToggle: { on in
+                    Task { await actionsViewModel.setAITrainingRedirect(on) }
+                }
+            )
+        }
+
+        if actionsViewModel.markdownForAgentsAvailable {
+            settingToggleRow(
+                title: String(localized: "面向 Agent 的 Markdown"),
+                subtitle: String(localized: "按请求把页面转成 Markdown 返回"),
+                icon: "doc.plaintext",
+                tint: .teal,
+                isOn: actionsViewModel.markdownForAgents,
+                isBusy: actionsViewModel.isTogglingMarkdownForAgents,
+                canEdit: canEditSettings,
+                isLoaded: true,
+                deniedScope: "zone-settings.write",
+                requestToggle: { on in
+                    Task { await actionsViewModel.setMarkdownForAgents(on) }
+                }
+            )
+        }
+    }
+
     private func syncPausedFromAPI() async {
         guard let paused = await actionsViewModel.refreshPaused() else { return }
         writeBackPaused(paused)
