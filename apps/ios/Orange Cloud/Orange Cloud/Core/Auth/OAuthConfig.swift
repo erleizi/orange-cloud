@@ -11,7 +11,7 @@ import Foundation
 nonisolated enum OAuthConfig {
     /// 官方 OAuth Client（Cloudflare Dashboard → OAuth clients）。
     /// 仅供官方构建使用；自编译请自建 Client 与回调中转，见 CONTRIBUTING.md。
-    static let clientID = "e0cc0281966c13494fb661c45ca43e0a"
+    static let clientID = "acc9398e5476498b36e050df1995d87d"
 
     /// 自定义 scheme，供 Web 后端 302 跳回 App
     static let callbackScheme = "orangecloud"
